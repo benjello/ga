@@ -142,6 +142,15 @@ def test_present_value():
         assert res_percapita.get_value((count, 1, 2001), 'tax')*size_generation == res_control.get_value((count, 0, 2001), 'tax')
         count +=1
 
+def test_compute_ipl():
+    
+    size_generation = 3
+    cohort2 = create_neutral_profiles_cohort(population = size_generation)
+    cohort_percapita = Cohorts(cohort2.per_capita_generation_present_value('tax'))
+    ipl = cohort_percapita.compute_ipl(typ = 'tax', net_gov_wealth = 10)
+    assert ipl == -10.0
+
+
 def test_filter_value():
     """
     Testing the method to filter data from a given cohort
@@ -157,7 +166,7 @@ def test_filter_value():
     column = None
     cohort.proj_tax(g, r, column,  method = 'per_capita')
     #Testing restrictions
-    cohort_filtered = cohort.filter_value(age = list(range(0, 100, 10)), year = list(range(2001, 2060, 5)), typ = 'tax')
+    cohort_filtered = cohort.filter_value(age = list(range(0, 100, 1)), year = list(range(2001, 2060, 5)), typ = 'tax')
     count = 2001
     while count <= 2060:
         assert abs(cohort_filtered.get_value((0, 1, count), 'tax') + (1+g)**(count-2001)) == 0.0
@@ -221,6 +230,7 @@ if __name__ == '__main__':
 #     test_filter_value()
 #     test_generation_extraction()
 #     test_create_age_class()
+    test_compute_ipl()
 
-    nose.core.runmodule(argv=[__file__, '-v', '-i test_*.py'])
+#     nose.core.runmodule(argv=[__file__, '-v', '-i test_*.py'])
 #     nose.core.runmodule(argv=[__file__, '-vvs', '-x', '--pdb', '--pdb-failure'], exit=False)

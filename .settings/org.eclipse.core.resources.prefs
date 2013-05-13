@@ -1,7 +1,5 @@
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
-encoding//src/countries/france/__init__.py=utf-8
-encoding//src/countries/france/sources/build.py=utf-8
 encoding//src/ga.pyw=utf-8
 encoding//src/ga_old.pyw=utf-8
 encoding//src/gui/config.py=utf-8

@@ -486,7 +486,7 @@ class Cohorts(DataFrame):
 #                     return restricted_cohort
                 else:
                     filter3 = array(filter_age & filter_sex & filter_year)
-                    print filter3
+#                     print filter3
                     restricted_cohort = self.loc[ filter3, typ]
 #                     return restricted_cohort
         restricted_cohort_ = Cohorts(restricted_cohort)
@@ -590,8 +590,8 @@ class Cohorts(DataFrame):
         pvm['age'] = array((serie//step)*step)
         pvf['age'] = array((serie//step)*step)
             
-        age_class_pvm = pvm.groupby(['age', 'year']).sum()
-        age_class_pvf = pvf.groupby(['age', 'year']).sum()
+        age_class_pvm = pvm.groupby(['age', 'year']).mean()
+        age_class_pvf = pvf.groupby(['age', 'year']).mean()
         
         #Put back the dataframes together
         pieces = [age_class_pvm, age_class_pvf]
@@ -600,6 +600,47 @@ class Cohorts(DataFrame):
         res = res.set_index(['age', 'sex', 'year'])
         return res            
 
+    def compute_ipl(self, typ, net_gov_wealth = None, net_gov_spendings = None):
+        """
+        Return a value of the intertemporal public liability. 
+        The dataframe has to contain the aggregated present values of transfer in order 
+        for the method to work correctly
+        
+        Parameters
+        ----------
+        typ : the column containing the data used in the calculation
+        
+        net_gov_wealth : the present value of the wealth of the government
+        
+        net_gov_spendings : the present value of unventilated (TODO: check spelling) government's spendings
+        
+        Returns
+        -------
+        
+        ipl : float
+            the value of the intertemporal public liability
+        """
+        if net_gov_wealth is None:
+            net_gov_wealth = 0
+        if net_gov_spendings is None:
+            net_gov_spendings = 0
+        
+        year_min = array(list(self.index_sets['year'])).min()
+        year_max = array(list(self.index_sets['year'])).max()
+#         age_min = array(list(self.index_sets['age'])).min()
+        age_max = array(list(self.index_sets['age'])).max()
+        
+        past_gen_dataframe = self.xs(year_min, level = 'year')
+        past_gen_dataframe = past_gen_dataframe.cumsum()
+        past_gen_transfer = past_gen_dataframe.get_value((age_max, 1), typ)
+        
+        future_gen_dataframe = self.xs(0, level = 'age')
+        future_gen_dataframe = future_gen_dataframe.cumsum()
+        future_gen_transfer = future_gen_dataframe.get_value((1, year_max), typ)
+        #Note : do not forget to eliminate values counted twice
+        ipl = past_gen_transfer + future_gen_transfer + net_gov_wealth - net_gov_spendings - past_gen_dataframe.get_value((0, 1), typ)
+        return ipl
+    
     
     
     def get_unknown_years(self, typ):
