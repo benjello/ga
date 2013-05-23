@@ -8,6 +8,7 @@ Created on 26 avr. 2013
 from pandas import DataFrame, merge
 from numpy import arange
 from src.lib.cohorte import Cohorts
+from src.lib.DataCohorts import DataCohorts
 
 #===============================================================================
 # Some function to generate fake data for testing
@@ -75,7 +76,7 @@ def create_constant_profiles_dataframe(population_dataframe, **kwargs):
 
 def create_neutral_profiles_cohort(population):
     """
-    Utility function which generates a cohort with population and transfers.
+    Utility function which generates a DataCohort with population and transfers.
     No projection is needed, the dataframe is delivered without "hole"
     
     Parameters
@@ -87,8 +88,8 @@ def create_neutral_profiles_cohort(population):
     -------
     cohort : a cohort dataframe such that :
             Anybody below 50 years old (excluded) pays -1
-            Anybody between 50 and 99 years old recieve 1
-            Anybody over 100 years old included pays 0
+            Anybody between 50 and 99 years old (included) recieve 1
+            Anybody over 100 years old (included) pays 0
             As such, the total net transfer is zero for newborns
     """
     n = 0
@@ -97,7 +98,7 @@ def create_neutral_profiles_cohort(population):
     profile = create_constant_profiles_dataframe(population_dataframe, tax=-1)
     g = 0.0
     r = 0.0 
-    cohort = Cohorts(population_dataframe)
+    cohort = DataCohorts(population_dataframe)
     cohort.fill(profile)
     cohort.loc[cohort.index.get_level_values(0) >= 0,'tax'] = -1
     cohort.loc[cohort.index.get_level_values(0) >= 50,'tax'] = 1
@@ -105,9 +106,6 @@ def create_neutral_profiles_cohort(population):
     typ = 'tax'
     cohort.proj_tax(g, r, typ,  method = 'per_capita')
 
-#     print cohort
-#     print cohort.get_value((100,0,2030), 'tax'), cohort.get_value((99,0,2030), 'tax'), cohort.get_value((49,0,2030), 'tax')
-#     test_value = cohort.get_value((0,1,2002), 'tax')    
     return cohort
 
 

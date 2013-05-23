@@ -7,11 +7,8 @@ Created on 26 avr. 2013
 import nose
 from src.lib.simulation import Simulation
 from src.scripts.tests.utils import (create_testing_population_dataframe,
-                                     create_constant_profiles_dataframe)
-
-#===============================================================================
-# Testing the simulation object construction plus population and tax projection.
-#===============================================================================
+                                     create_constant_profiles_dataframe,
+                                     create_neutral_profiles_cohort)
 
 def test_simulation_creation():
 
@@ -43,5 +40,21 @@ def test_simulation_creation():
 
 
 
+# TODO: create the test    
+def test_compute_gen_imbalance():
+    size_generation = 1
+    cohort = create_neutral_profiles_cohort(population = size_generation)
+    simulation = Simulation()    
+    simulation.discount_rate = 0
+    simulation.growth_rate = 0
+    simulation.cohorts = cohort
+    simulation.create_present_values('tax')
+    gen_imbalance = simulation.compute_gen_imbalance(typ = 'tax')
+#     print gen_imbalance
+    assert gen_imbalance[0] == -5000.0/(2*199.0), gen_imbalance[1] == -5000.0/(2*199.0)
+
+
+
 if __name__ == '__main__':
+#     test_compute_gen_imbalance()
     nose.core.runmodule(argv=[__file__, '-v', '-i test_*.py'])    
