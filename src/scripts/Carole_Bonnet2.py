@@ -45,13 +45,19 @@ def test():
     year_length = 200
     r = 0.03
     g = 0.01
+    n = 0.00
     net_gov_wealth = -3217.7e+09
     net_gov_spendings = 0
+<<<<<<< HEAD
 
     simulation.set_population_projection(year_length=year_length, method="exp_growth")
+=======
+    simulation.set_population_projection(year_length=year_length, method="stable")
+>>>>>>> 5634a7b33d734351fa966f5378027a2d9544dca0
     simulation.set_tax_projection(method="per_capita", rate=g)
     simulation.set_growth_rate(g)
-    simulation.set_discount_rate(r)        
+    simulation.set_discount_rate(r) 
+    simulation.set_population_growth_rate(n)      
     simulation.create_cohorts()
 
     simulation.set_gov_wealth(net_gov_wealth)
@@ -60,9 +66,7 @@ def test():
 
     #Calculating net transfers
     #Net_transfers = tax paid to the state minus money recieved from the state
-    #TODO: transform this in a method
-    simulation.cohorts['total_taxes'] = 0
-    simulation.cohorts['total_payments'] = 0
+
     
     taxes_list = ['tva', 'tipp', 'cot', 'irpp', 'impot', 'property']
     payments_list = ['chomage', 'retraite', 'revsoc', 'maladie', 'educ']
@@ -96,7 +100,9 @@ def test():
     
     
     #Creating age classes
-    cohorts_age_class = AccountingCohorts(simulation.percapita_pv.create_age_class(step = 5))
+
+
+    cohorts_age_class = AccountingCohorts(simulation.create_age_class(typ = 'net_transfers', step = 5))
 
     cohorts_age_class._types = [u'tva', u'tipp', u'cot', u'irpp', u'impot', u'property', u'chomage', u'retraite', u'revsoc', u'maladie', u'educ', u'net_transfers']
     age_class_pv_fe = cohorts_age_class.xs((1, 2007), level = ['sex', 'year'])

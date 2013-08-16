@@ -95,7 +95,7 @@ class AccountingCohorts(Cohorts):
  
  
     
-    def create_age_class(self, step = 1):
+    def create_age_class(self, step = 1, typ = None):
         """
         Transform a filled cohort dataframe by regrouping 
         age indexies in age class indexies. The size of the age class is indicated by the step argument
@@ -109,6 +109,10 @@ class AccountingCohorts(Cohorts):
         -------
         res : A DataFrame of the Cohorts class with age indexes replaced with class indicies
         """
+        
+        if typ is None:
+            typ = self._types
+        
         # Separating Men and Women
         pvm = self.xs(0, level='sex')
         pvf = self.xs(1, level='sex')
@@ -119,9 +123,18 @@ class AccountingCohorts(Cohorts):
         serie = array(pvm.age)
         pvm['age'] = array((serie//step)*step)
         pvf['age'] = array((serie//step)*step)
-             
-        age_class_pvm = pvm.groupby(['age', 'year']).mean()
-        age_class_pvf = pvf.groupby(['age', 'year']).mean()
+        
+#         #Old version of age class creation using the simulation.percapita_pv
+#         age_class_pvm = pvm.groupby(['age', 'year']).mean()
+#         age_class_pvf = pvf.groupby(['age', 'year']).mean() 
+
+       
+        #New version which takes in account the change of population over the years        
+        age_class_pvm = pvm.groupby(['age', 'year']).sum()
+        age_class_pvf = pvf.groupby(['age', 'year']).sum()
+        
+        age_class_pvm[typ] *= 1/age_class_pvm['pop']
+        age_class_pvf[typ] *= 1/age_class_pvf['pop']
          
         #Put back the dataframes together
         pieces = [age_class_pvm, age_class_pvf]
@@ -150,10 +163,10 @@ class AccountingCohorts(Cohorts):
         ipl : float
             the value of the intertemporal public liability
         """
-#         if net_gov_wealth is None:
-#             net_gov_wealth = 0
-#         if net_gov_spendings is None:
-#             net_gov_spendings = 0
+        if net_gov_wealth is None:
+            net_gov_wealth = 0
+        if net_gov_spendings is None:
+            net_gov_spendings = 0
          
         year_min = array(list(self.index_sets['year'])).min()
         year_max = array(list(self.index_sets['year'])).max()

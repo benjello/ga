@@ -198,13 +198,13 @@ class Cohorts(DataFrame):
         
         Parameters
         ----------
-        age = List
+        age : List
             The values of the age index have to be between 0 and 100 included
-        sex = 0 or 1
-            The sex index we are interested in. 0 santds for males and 1 for females. Default is both.
-        year = List
+        sex : 0 or 1
+            The sex index we are interested in. 0 stands for males and 1 for females. Default is both.
+        year : List
             The years we are interested in.
-        typ = Str
+        typ : Str
             The data we want to select
             
         Returns

@@ -23,9 +23,7 @@ class DataCohorts(Cohorts):
     def __init__(self, data=None, index=None, columns=None, 
                  dtype=None, copy=False):
         super(DataCohorts, self).__init__(data, index, columns , dtype, copy)
-        '''
-        Constructor
-        '''
+
         
     def set_population_from_csv(self, datafile):
         '''
@@ -39,11 +37,11 @@ class DataCohorts(Cohorts):
         
         
                 
-    def fill(self, df, year = None):
+    def _fill(self, df, year = None):
         """
         Takes age, sex profile (per capita transfers) found in df
-        to fill year 'year' or all years if year is None
-        
+        to fill year 'year' or all empty years if year is None
+        This is a private method.
         Parameters
         ----------
         
@@ -130,8 +128,6 @@ class DataCohorts(Cohorts):
             
 
         if method == 'exp_growth':
-#             TODO : finish this projection method. Add an argument, add checkpoint if growth rate is None
-#             find efficient way to do the growth operation
             if growth_rate is None:
                     raise Exception('a growth rate must be provided for the method')
             
@@ -205,6 +201,16 @@ class DataCohorts(Cohorts):
 
     def compute_net_transfers(self, name = 'net_transfers', taxes_list = [], payments_list = []):
         """
+        Creates a new column total_payments in the DataCohorts which combines the profiles.
+        
+        Parameters
+        ----------
+        name : str (default net_transfers)
+            The name of the computed column
+        taxes_list : list
+            A list of the name of the columns containing all the taxes profiles
+        payments_list : list
+            A list of the names of the columns containing all the subsidies and payments profiles
         """
 
         self.new_type(name)
@@ -223,6 +229,8 @@ class DataCohorts(Cohorts):
                 self['total_payments'] += hstack(self[typ])
     
         self[name] = self['total_taxes'] - self['total_payments']
+        if self[name].all() == 0:
+            raise Exception('The computed column contains only zeros')
 
          
     def aggregate_generation_present_value(self, typ, discount_rate=None):
@@ -237,7 +245,7 @@ class DataCohorts(Cohorts):
                         Rate used to calculate the present value
         Returns
         -------
-        res : a dataframe with column 'typ' containing the aggregat present value of typ 
+        res : an AccountingCohorts with column 'typ' containing the aggregat present value of typ 
         """
         if typ not in self._types:
             raise Exception('cohort: variable %s is not in self._types' %typ)
@@ -248,8 +256,6 @@ class DataCohorts(Cohorts):
             self.gen_dsct(discount_rate)
         tmp = self['dsct']*self[typ]*self['pop']
         tmp = tmp.unstack(level = 'year')  # untack year indices to columns
-        # TODO use a loop <- Whatfor ?
-#        for sex in self.index_sets[sex]:
         
         pvm = tmp.xs(0, level='sex')
         pvf = tmp.xs(1, level='sex') #Assuming 1 is the index for females resp. 0 is male.
@@ -267,18 +273,22 @@ class DataCohorts(Cohorts):
         res = res.reset_index()
         res = res.set_index(['age', 'sex', 'year'])
         res.columns = [typ]
-#         self._pv_aggregate = res #TODO : change to redirect the result to an attribute of simulation.
         return AccountingCohorts(res)
 
 
     def per_capita_generation_present_value(self, typ, discount_rate = None):
         """
-        Returns present net value for typ per capita
+        Returns present net value per capita of the data typ 
         
         Parameters
         ----------
         typ : str
               Column name
+        discount_rate : float
+        
+        Returns
+        -------
+        pv_percapita : an AccountingCohorts with column 'typ' containing the per capita present value of typ 
         
         """
 
